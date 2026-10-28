@@ -125,7 +125,7 @@ body:has(#kelola:checked) .app{cursor:grab;-webkit-touch-callout:none;user-selec
   <!--
     CARA MENAMBAH APLIKASI: salin satu baris contoh ini, tempel di dalam <div class="grid"> pada sebuah rak,
     lalu ganti link, angka warna --h (0-360), huruf awal, nama, dan keterangan:
-    <a class="app" href="https://USERNAME.github.io/nama-app/" target="_blank" rel="noopener"><span class="ic" style="--h:205">N</span><b>Nama aplikasi</b><small>Keterangan singkat</small></a>
+    <a class="app" href="https://USERNAME.github.io/nama-app/"><span class="ic" style="--h:205">N</span><b>Nama aplikasi</b><small>Keterangan singkat</small></a>
   -->
   <div class="cab" id="cab"></div>
   <p class="note" id="empty" hidden>Belum ada aplikasi. Nyalakan Mode kelola, lalu tambahkan rak dan aplikasi.</p>
@@ -194,7 +194,7 @@ function groups(){
   return gs}
 function endPos(cat,ex){var l=(window.__cur||[]).filter(function(a){return a.id!==ex&&grpOf(a)===cat}).sort(byKey);return l.length?key(l[l.length-1])+1000:Date.now()}
 function tileHtml(a){var l=(a.name||'?').charAt(0).toUpperCase();
-  return '<div class="tile"><a class="app" draggable="false" data-id="'+esc(a.id)+'" href="'+esc(a.url)+'" target="_blank" rel="noopener"><span class="ic" style="--h:'+hue(a.name||'?')+'">'
+  return '<div class="tile"><a class="app" draggable="false" data-id="'+esc(a.id)+'" href="'+esc(a.url)+'"><span class="ic" style="--h:'+hue(a.name||'?')+'">'
   +(a.icon?'<img draggable="false" src="'+esc(a.icon)+'" alt="'+esc(l)+'" referrerpolicy="no-referrer" onerror="this.replaceWith(this.alt)">':esc(l))
   +'</span><b>'+esc(a.name)+'</b></a><button class="x" data-del="'+esc(a.id)+'" aria-label="Hapus '+esc(a.name)+'" title="Hapus">✕</button></div>'}
 function draw(){
