@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <title>Essenhub</title>
 <meta name="theme-color" content="#5b98f1">
 <link rel="manifest" href="manifest.json">
@@ -11,16 +11,16 @@
 <style>
 :root{--bg:#eef3fa;--sf:#fff;--ink:#14243f;--mut:#667791;--ln:#d9e3f2;--pr:#5b98f1;--prd:#2f6fd6;--pri:#e6f0ff}
 *{box-sizing:border-box}
-body{margin:0;font:15px/1.5 system-ui,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+body{margin:0;font:15px/1.5 system-ui,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);padding:var(--hh,env(safe-area-inset-top)) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);-webkit-text-size-adjust:100%;touch-action:manipulation}
 [hidden]{display:none!important}
 :focus-visible{outline:3px solid var(--pr);outline-offset:2px}
-header{position:sticky;top:0;z-index:5;background:var(--sf)}
+header{position:fixed;top:0;left:0;right:0;z-index:5;background:var(--sf);padding:env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);box-shadow:0 1px 0 var(--ln)}
 .bar{max-width:1040px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px}
 .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px;letter-spacing:-.02em}
 .brand img{width:32px;height:32px}
 #q{margin-left:auto;width:100%;max-width:320px;padding:9px 12px;border:1px solid var(--ln);border-radius:10px;background:var(--bg);color:inherit;font:inherit}
 main{max-width:1040px;margin:0 auto;padding:16px}
-/* Rak aplikasi: lemari berisi beberapa rak (judul kategori + baris ikon). Tiap baris tinggi 124px + papan 22px (pitch 146px), papan digambar berulang lewat background */
+/* Rak aplikasi: lemari berisi beberapa rak (judul kategori + baris ikon). Tiap baris ikon tinggi 124px; papan 22px hanya digambar sekali di dasar rak (tanpa sekat antar baris dalam rak yang sama) */
 .cab{background:#e4ebf6;border:12px solid #b58655;border-bottom-width:10px;border-radius:16px 16px 10px 10px;padding:0 8px;box-shadow:0 10px 24px rgba(20,36,63,.16),inset 0 8px 14px rgba(20,36,63,.08)}
 .cab:empty{display:none}
 .st{display:flex;align-items:center;gap:4px;padding:12px 6px 0;min-height:42px}
@@ -29,9 +29,9 @@ main{max-width:1040px;margin:0 auto;padding:16px}
 .sb:hover{background:var(--pri);color:var(--prd)}
 body:has(#kelola:checked) .sb{display:inline-grid}
 .addrow{text-align:center;margin-top:14px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));grid-auto-rows:124px;column-gap:4px;row-gap:22px;padding-bottom:22px;border-radius:10px;
-  background-image:linear-gradient(to bottom,transparent 0,transparent 124px,#ecd3ac 124px,#e0c08f 130px,#c79a64 130px,#b58655 142px,rgba(80,50,20,.22) 142px,rgba(80,50,20,0) 146px);
-  background-size:100% 146px;background-repeat:repeat-y}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));grid-auto-rows:124px;column-gap:4px;row-gap:10px;padding-bottom:22px;border-radius:10px;
+  background-image:linear-gradient(to bottom,#ecd3ac 0,#e0c08f 6px,#c79a64 6px,#b58655 18px,rgba(80,50,20,.22) 18px,rgba(80,50,20,0) 22px);
+  background-size:100% 22px;background-repeat:no-repeat;background-position:left bottom}
 .shelf.over .grid{box-shadow:0 0 0 3px rgba(91,152,241,.65)}
 .tile.drag,.shelf.drag{opacity:.3}
 .shelf.sdt{box-shadow:0 -4px 0 var(--pr)}.shelf.sdb{box-shadow:0 4px 0 var(--pr)}
@@ -49,6 +49,8 @@ body:has(#kelola:checked) .grid:empty::before{content:"Seret aplikasi ke sini"}
 .app b{font-size:13px;line-height:1.25;max-width:100%;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
 .app small{color:var(--mut);font-size:12px}
 @media(max-width:520px){.bar .brand span{display:none}.grid{grid-template-columns:repeat(3,1fr)}}
+/* Cegah auto-zoom iOS saat mengetik: kolom isian minimal 16px */
+@media(pointer:coarse),(max-width:700px){input,select,textarea,#bk{font-size:16px!important}}
 /* Login */
 .auth{min-height:100vh;min-height:100dvh;display:grid;place-items:center;padding:20px}
 .auth form{width:100%;max-width:360px;margin:0 auto;background:var(--sf);border:1px solid var(--ln);border-radius:22px;padding:26px}
@@ -169,6 +171,12 @@ body:has(#kelola:checked) .app{cursor:grab;-webkit-touch-callout:none;user-selec
 
 <script>
 /* Kerangka halaman murni HTML; skrip ini hanya untuk daftar aplikasi, tambah/hapus, dan pencarian. */
+/* Header dibuat tetap (fixed); tinggi headernya dipakai sebagai jarak atas isi halaman */
+(function(){var h=document.getElementById('top');
+  function f(){var v=h.hidden?0:h.offsetHeight;if(v)document.body.style.setProperty('--hh',v+'px');else document.body.style.removeProperty('--hh')}
+  if(window.ResizeObserver)new ResizeObserver(f).observe(h);
+  if(window.MutationObserver)new MutationObserver(f).observe(h,{attributes:true,attributeFilter:['hidden']});
+  window.addEventListener('resize',f);window.addEventListener('orientationchange',f);window.addEventListener('load',f);f()})();
 var $=function(id){return document.getElementById(id)},q=$('q'),b=$('boot'),cab=$('cab');q.hidden=false;
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function host(u){try{return new URL(u).host}catch(e){return u}}
