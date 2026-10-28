@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Essenhub</title>
+<meta name="theme-color" content="#5b98f1">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+:root{--bg:#eef3fa;--sf:#fff;--ink:#14243f;--mut:#667791;--ln:#d9e3f2;--pr:#5b98f1;--prd:#2f6fd6;--pri:#e6f0ff}
+@media(prefers-color-scheme:dark){:root{--bg:#0e1626;--sf:#16223a;--ink:#e8eefb;--mut:#8fa0bd;--ln:#243452;--pr:#6aa6ff;--prd:#8dbbff;--pri:#1b2c4b}}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.5 system-ui,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+[hidden]{display:none!important}
+:focus-visible{outline:3px solid var(--pr);outline-offset:2px}
+header{position:sticky;top:0;z-index:5;background:var(--sf);border-bottom:3px solid var(--pr)}
+.bar{max-width:1040px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px;letter-spacing:-.02em}
+.brand img{width:32px;height:32px}
+#q{margin-left:auto;width:100%;max-width:320px;padding:9px 12px;border:1px solid var(--ln);border-radius:10px;background:var(--bg);color:inherit;font:inherit}
+main{max-width:1040px;margin:0 auto;padding:16px}
+/* Filter perusahaan: radio + label, tanpa JavaScript */
+.filter{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.filter input{position:absolute;opacity:0;pointer-events:none}
+.filter label{flex:none;border:1px solid var(--ln);background:var(--sf);border-radius:99px;padding:6px 16px;font-weight:600;color:var(--mut);cursor:pointer}
+.filter input:checked+label{background:var(--pr);border-color:var(--pr);color:#fff}
+.filter input:focus-visible+label{outline:3px solid var(--pr);outline-offset:2px}
+body:has(#f-essen:checked) .co:not(#essen),body:has(#f-inspira:checked) .co:not(#inspira){display:none}
+/* Perusahaan > Divisi > Aplikasi */
+.co{margin-top:20px;background:var(--sf);border:1px solid var(--ln);border-radius:20px;padding:6px 18px 18px}
+.co>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:12px;padding:14px 0;font-size:18px;font-weight:800}
+.co>summary::-webkit-details-marker{display:none}
+.co>summary::after{content:"▾";margin-left:auto;color:var(--mut);transition:transform .15s}
+.co:not([open])>summary::after{transform:rotate(-90deg)}
+.co>summary small{font-weight:500;color:var(--mut);font-size:13px}
+.dv{margin-top:8px}
+.dv h3{margin:0 0 10px;font-size:13px;color:var(--mut);font-weight:700;display:flex;align-items:center;gap:10px}
+.dv h3::after{content:"";flex:1;height:1px;background:var(--ln)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:14px}
+.app{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;text-decoration:none;color:inherit;background:var(--bg);border-radius:18px;padding:16px 10px 14px}
+.app:hover{background:var(--pri)}
+.ic{width:56px;height:56px;border-radius:17px;display:grid;place-items:center;color:#fff;font-size:26px;font-weight:800;background:hsl(var(--h) 62% 52%)}
+.app b{line-height:1.25}
+.app small{color:var(--mut);font-size:12px}
+@media(max-width:520px){.bar .brand span{display:none}.grid{grid-template-columns:repeat(2,1fr)}}
+/* Login */
+.auth{min-height:70vh;display:grid;place-items:center;padding:20px}
+.auth form{width:100%;max-width:360px;background:var(--sf);border:1px solid var(--ln);border-radius:22px;padding:26px}
+.auth img{width:44px;height:44px}
+.auth h1{margin:8px 0 2px;font-size:22px;letter-spacing:-.02em}
+.auth p{margin:0 0 6px;color:var(--mut)}
+.auth label{display:block;margin-top:12px;font-size:13px;font-weight:600;color:var(--mut)}
+.auth input{width:100%;margin-top:4px;padding:10px 12px;border:1px solid var(--ln);border-radius:10px;background:var(--bg);color:inherit;font:inherit}
+.btn{border:0;border-radius:10px;padding:10px 16px;font:inherit;font-weight:700;cursor:pointer;background:var(--pr);color:#fff}
+.btn:hover{background:var(--prd)}
+.btn.ghost{background:none;color:var(--ink);border:1px solid var(--ln)}
+.auth .btn{width:100%;margin-top:16px}
+.link{background:none;border:0;padding:6px 0;margin-top:6px;color:var(--prd);font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.err{min-height:20px;margin:8px 0 0;color:#d64545;font-size:13px}
+.note{max-width:1040px;margin:16px auto 0;padding:10px 16px;color:var(--mut);font-size:14px;text-align:center}
+</style>
+</head>
+<body>
+<header><div class="bar">
+  <div class="brand"><img src="icons/icon-192.png" alt=""><span>Essenhub</span></div>
+  <input id="q" type="search" placeholder="Cari aplikasi…" aria-label="Cari aplikasi" hidden>
+  <button class="btn ghost" id="out" hidden>Keluar</button>
+</div></header>
+
+<p class="note" id="boot">Memuat…</p>
+
+<section class="auth" id="auth" hidden>
+  <form id="af">
+    <img src="icons/icon-192.png" alt="">
+    <h1>Masuk ke Essenhub</h1>
+    <p>Gunakan akun yang didaftarkan admin.</p>
+    <label for="em">Email</label><input id="em" type="email" autocomplete="email" required>
+    <label for="pw">Kata sandi</label><input id="pw" type="password" autocomplete="current-password" required>
+    <p class="err" id="err" role="alert"></p>
+    <button class="btn">Masuk</button>
+    <button type="button" class="link" id="forgot">Lupa kata sandi?</button>
+  </form>
+</section>
+
+<main id="app" hidden>
+  <div class="filter" role="radiogroup" aria-label="Filter perusahaan">
+    <input type="radio" name="f" id="f-all" checked><label for="f-all">Semua</label>
+    <input type="radio" name="f" id="f-essen"><label for="f-essen">Essen Studio</label>
+    <input type="radio" name="f" id="f-inspira"><label for="f-inspira">Inspira</label>
+  </div>
+
+  <!--
+    CARA MENAMBAH APLIKASI: salin satu baris <a class="app"> di bawah, tempel di divisi yang diinginkan,
+    lalu ganti link, angka warna --h (0-360), huruf awal, nama, dan keterangan.
+    Divisi baru: salin satu blok <section class="dv">. Perusahaan baru: salin <details class="co">
+    dan tambahkan satu pasang <input>/<label> di filter di atas (plus satu aturan "body:has" di CSS).
+  -->
+
+  <details class="co" id="essen" open>
+    <summary>Essen Studio <small>Aplikasi pribadi</small></summary>
+    <section class="dv">
+      <h3>Produktivitas</h3>
+      <div class="grid">
+        <a class="app" href="https://USERNAME.github.io/essentime/" target="_blank" rel="noopener"><span class="ic" style="--h:205">E</span><b>Essentime</b><small>Timer paralel</small></a>
+        <a class="app" href="https://USERNAME.github.io/essentiapath/" target="_blank" rel="noopener"><span class="ic" style="--h:160">E</span><b>EssentiaPath</b><small>Pengingat dan kalender</small></a>
+      </div>
+    </section>
+    <section class="dv">
+      <h3>Belajar</h3>
+      <div class="grid">
+        <a class="app" href="https://USERNAME.github.io/essensiana/" target="_blank" rel="noopener"><span class="ic" style="--h:265">E</span><b>Essensiana</b><small>Baca materi dan latihan</small></a>
+        <a class="app" href="https://USERNAME.github.io/essenca/" target="_blank" rel="noopener"><span class="ic" style="--h:25">E</span><b>Essenca</b><small>Persiapan sertifikasi CA</small></a>
+      </div>
+    </section>
+  </details>
+
+  <details class="co" id="inspira" open>
+    <summary>Inspira <small>Bisnis</small></summary>
+    <section class="dv">
+      <h3>Keuangan</h3>
+      <div class="grid">
+        <a class="app" href="https://USERNAME.github.io/inspira-ledger/" target="_blank" rel="noopener"><span class="ic" style="--h:42">I</span><b>Inspira Ledger</b><small>Akuntansi dan inventaris</small></a>
+      </div>
+    </section>
+  </details>
+</main>
+
+<script>
+/* Pencarian + pesan status. Daftar aplikasi sendiri murni HTML. */
+var q=document.getElementById('q'),b=document.getElementById('boot');q.hidden=false;
+q.oninput=function(){var v=q.value.toLowerCase();
+document.querySelectorAll('.app').forEach(function(a){a.hidden=a.textContent.toLowerCase().indexOf(v)<0});
+document.querySelectorAll('.dv').forEach(function(d){d.hidden=!d.querySelector('.app:not([hidden])')})};
+if(location.protocol==='file:'){b.textContent='Mode pratinjau lokal: login aktif setelah dibuka lewat GitHub Pages atau http://localhost.';document.getElementById('app').hidden=false}
+else{setTimeout(function(){if(!window.__ok)b.textContent='Essenhub gagal dimuat. Periksa koneksi internet dan pastikan firebase-config.js ada di folder yang sama dengan index.html.'},6000);
+if('serviceWorker' in navigator)navigator.serviceWorker.register('service-worker.js')}
+</script>
+<script type="module">
+/* Login Firebase (email/kata sandi). Tidak dijalankan saat dibuka lewat file:// */
+if(location.protocol!=='file:'){
+  const $=id=>document.getElementById(id), V='10.12.2', G='https://www.gstatic.com/firebasejs/'+V+'/';
+  const MSG={'auth/invalid-credential':'Email atau kata sandi salah.','auth/invalid-email':'Format email tidak valid.','auth/missing-password':'Isi kata sandi.','auth/too-many-requests':'Terlalu banyak percobaan. Coba lagi nanti.','auth/network-request-failed':'Tidak ada koneksi internet.','auth/user-disabled':'Akun ini dinonaktifkan.'};
+  try{
+    const [{initializeApp},A,{firebaseConfig}]=await Promise.all([import(G+'firebase-app.js'),import(G+'firebase-auth.js'),import('./firebase-config.js')]);
+    const auth=A.getAuth(initializeApp(firebaseConfig)); window.__ok=1;
+    A.onAuthStateChanged(auth,u=>{$('boot').hidden=true;$('auth').hidden=!!u;$('app').hidden=!u;$('out').hidden=!u;$('out').title=u?u.email:''});
+    $('af').onsubmit=async e=>{e.preventDefault();$('err').textContent='';
+      try{await A.signInWithEmailAndPassword(auth,$('em').value.trim(),$('pw').value);$('pw').value=''}
+      catch(x){$('err').textContent=MSG[x.code]||'Gagal masuk: '+(x.code||x.message)}};
+    $('forgot').onclick=async()=>{const m=$('em').value.trim();
+      if(!m){$('err').textContent='Isi email dulu, lalu klik Lupa kata sandi.';return}
+      try{await A.sendPasswordResetEmail(auth,m);$('err').textContent='Tautan reset dikirim ke email.'}catch(x){$('err').textContent=MSG[x.code]||'Gagal: '+x.code}};
+    $('out').onclick=()=>A.signOut(auth);
+  }catch(x){console.error(x)}
+}
+</script>
+</body>
+</html>
