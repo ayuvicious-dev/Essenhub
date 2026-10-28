@@ -106,11 +106,14 @@ body:has(#kelola:not(:checked)) #add,body:has(#kelola:not(:checked)) #bak,body:h
 
 <dialog id="bdlg">
   <form id="bf" method="dialog">
-    <h2 style="margin:0 0 4px;font-size:20px">Cadangan / impor</h2>
-    <p class="hint">Salin daftar aplikasi di browser ini, lalu tempel di Essenhub versi GitHub dan tekan Impor. Link yang sudah ada dilewati.</p>
+    <h2 style="margin:0 0 4px;font-size:20px">Backup &amp; restore</h2>
+    <p class="hint">Backup mengunduh semua aplikasi ke file .json. Restore membaca file .json dan menambahkan aplikasi yang belum ada (link yang sama dilewati).</p>
+    <div class="row" style="margin-bottom:12px"><button type="button" class="btn" id="bd">Backup (.json)</button><button type="button" class="btn ghost" id="br">Restore (.json)</button></div>
+    <input type="file" id="bfile" accept=".json,application/json" hidden>
+    <label for="bk">Atau salin / tempel manual</label>
     <textarea id="bk" spellcheck="false" aria-label="Data aplikasi (JSON)"></textarea>
     <p class="err" id="berr" role="alert"></p>
-    <div class="row"><button type="button" class="btn ghost" id="bx">Tutup</button><button type="button" class="btn ghost" id="bc">Salin</button><button type="button" class="btn" id="bi">Impor</button></div>
+    <div class="row"><button type="button" class="btn ghost" id="bx">Tutup</button><button type="button" class="btn ghost" id="bc">Salin</button><button type="button" class="btn ghost" id="bi">Impor teks</button></div>
   </form>
 </dialog>
 
@@ -163,19 +166,29 @@ nf.onsubmit=async function(e){
   try{await window.store.add({name:$('nn').value.trim()||p.name||x.host,url:u,icon:p.icon});dlg.close()}
   catch(z){$('nerr').textContent='Gagal menyimpan. Coba lagi.'}
   btn.disabled=false;btn.textContent='Simpan'};
-/* Cadangan / impor daftar aplikasi (JSON) */
+/* Backup & restore daftar aplikasi (JSON) */
 var bd=$('bdlg'),bk=$('bk'),be=$('berr');
+var msg=function(t,ok){be.style.color=ok?'var(--prd)':'';be.textContent=t};
 var exp=function(){return JSON.stringify((window.__cur||[]).map(function(a){return{name:a.name,url:a.url,icon:a.icon||''}}),null,1)};
-$('bak').onclick=function(){bk.value=exp();be.textContent='';be.style.color='';bd.showModal()};
+var doImport=async function(text){
+  var arr;try{arr=JSON.parse(text);if(arr&&!Array.isArray(arr)&&Array.isArray(arr.apps))arr=arr.apps;if(!Array.isArray(arr))throw 0}catch(e){msg('Format data tidak valid.');return}
+  if(!window.store){msg('Belum siap, coba lagi sebentar.');return}
+  var have={};(window.__cur||[]).forEach(function(a){have[a.url]=1});var n=0,sk=0;
+  for(var i=0;i<arr.length;i++){var a=arr[i];if(!a||!a.url)continue;if(have[a.url]){sk++;continue}have[a.url]=1;
+    try{await window.store.add({name:a.name||host(a.url),url:a.url,icon:a.icon||''});n++;await new Promise(function(r){setTimeout(r,5)})}catch(e){msg('Gagal menyimpan sebagian data ('+n+' berhasil).');return}}
+  msg(n+' aplikasi dipulihkan'+(sk?', '+sk+' dilewati (sudah ada)':'')+'.',true)};
+$('bak').onclick=function(){bk.value=exp();msg('');bd.showModal()};
 $('bx').onclick=function(){bd.close()};
-$('bc').onclick=async function(){bk.value=exp();bk.select();try{await navigator.clipboard.writeText(bk.value);be.style.color='';be.textContent='Disalin.'}catch(e){be.textContent='Teks sudah terpilih, salin manual.'}};
-$('bi').onclick=async function(){
-  var arr;try{arr=JSON.parse(bk.value);if(!Array.isArray(arr))throw 0}catch(e){be.style.color='';be.textContent='Format data tidak valid.';return}
-  if(!window.store){be.textContent='Belum siap, coba lagi sebentar.';return}
-  var have={};(window.__cur||[]).forEach(function(a){have[a.url]=1});var n=0;
-  for(var i=0;i<arr.length;i++){var a=arr[i];if(!a||!a.url||have[a.url])continue;have[a.url]=1;
-    try{await window.store.add({name:a.name||host(a.url),url:a.url,icon:a.icon||''});n++;await new Promise(function(r){setTimeout(r,5)})}catch(e){be.textContent='Gagal menyimpan sebagian data.';return}}
-  be.style.color='';be.textContent=n+' aplikasi diimpor.'};
+$('bd').onclick=function(){
+  var list=JSON.parse(exp());if(!list.length){msg('Belum ada aplikasi untuk di-backup.');return}
+  var blob=new Blob([JSON.stringify({app:'essenhub',version:1,exportedAt:new Date().toISOString(),apps:list},null,1)],{type:'application/json'});
+  var u=URL.createObjectURL(blob),l=document.createElement('a');l.href=u;l.download='essenhub-backup-'+new Date().toISOString().slice(0,10)+'.json';
+  document.body.appendChild(l);l.click();l.remove();setTimeout(function(){URL.revokeObjectURL(u)},1000);msg(list.length+' aplikasi di-backup.',true)};
+$('br').onclick=function(){$('bfile').value='';$('bfile').click()};
+$('bfile').onchange=function(){var f=this.files&&this.files[0];if(!f)return;
+  var r=new FileReader();r.onload=function(){doImport(String(r.result))};r.onerror=function(){msg('File tidak bisa dibaca.')};r.readAsText(f)};
+$('bc').onclick=async function(){bk.value=exp();bk.select();try{await navigator.clipboard.writeText(bk.value);msg('Disalin.',true)}catch(e){msg('Teks sudah terpilih, salin manual.')}};
+$('bi').onclick=function(){doImport(bk.value)};
 /* Ingat pilihan mode kelola di browser ini (bawaan: mati) */
 var kl=$('kelola');try{kl.checked=localStorage.getItem('essenhub_kelola')==='1'}catch(e){}
 kl.onchange=function(){try{localStorage.setItem('essenhub_kelola',kl.checked?'1':'0')}catch(e){}};
